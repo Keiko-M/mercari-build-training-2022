@@ -2,7 +2,6 @@ import os
 import logging
 import pathlib
 import json
-from pkgutil import iter_modules
 
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import FileResponse
@@ -33,7 +32,7 @@ def add_item(name: str = Form(...), category: str = Form(...)):
     items_list = {"items" : []}
 
     # if item.json exsits, load the data first
-    if os.path.isfile('items.json') == True:
+    if os.path.isfile('items.json'):
         with open('items.json') as item_json_file:
             items_list = json.load(item_json_file)
 
@@ -49,10 +48,10 @@ def add_item(name: str = Form(...), category: str = Form(...)):
 
 @app.get("/items")
 def get_items():
-    items_list = 'No items found'
+    items_list = {"items" : []}
 
     # if item.json exsits, load the data
-    if os.path.isfile('items.json') == True:
+    if os.path.isfile('items.json') :
         with open('items.json') as item_json_file:
             items_list = json.load(item_json_file)
 
