@@ -55,6 +55,9 @@ def get_items():
         with open('items.json') as item_json_file:
             items_list = json.load(item_json_file)
 
+    else:
+        raise HTTPException(status_code=400, detail="There is no items to show")
+
     return items_list
 
 @app.get("/image/{items_image}")
