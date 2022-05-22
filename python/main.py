@@ -24,21 +24,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/files/")
+@app.post("/files")
 async def create_file(file: bytes = File()):
     return {"file_size": len(file)}
 
 
-@app.post("/uploadfile/")
+@app.post("/uploadfile")
 async def create_upload_file(file: UploadFile):
     return {"filename": file.filename}
-
-# Hash the image using sha256
-def hash_image(image):
-    with open(image, 'rb') as f: #バイナリモードとして画像ファイルを読み込む
-        f.seek(0)
-        image_hash = hashlib.sha256(f.read()).hexdigest()
-        return (f'{image_hash}.jpg')
 
 @app.get("/")
 def root():
@@ -63,15 +56,30 @@ def search_item(keyword: str):
 
 
 @app.post("/items")
-def add_item(name: str = Form(...), category: str = Form(...), image: str = File()):
+async def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)):
     logger.info(f"Receive item: {name}, {category}, {image}")
+
+    # Check if jpg file, otherwise raise an error
+    if not image.filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image is not a jpg file")
+
+    # Hash image file name
+    split_image_filename = image.filename.split(".")
+    hashed_name = f"{hashlib.sha256(split_image_filename[0].encode('utf-8')).hexdigest()}.jpg"
+
+    # Save the jpg file
+    image_contents = await image.read()
+
+    image_path = images / hashed_name
+    with open(image_path, 'wb') as image_file:
+        image_file.write(image_contents)
 
     # Establish a connection and create a cursor
     conn = sqlite3.connect('../db/mercari.sqlite3')
     cur = conn.cursor()
 
     # Insert name, category, and image
-    cur.execute("INSERT INTO items (name, category, image) VALUES (?,?,?)", (name, category, hash_image(image)))
+    cur.execute("INSERT INTO items (name, category, image) VALUES (?,?,?)", (name, category, hashed_name))
 
     # Commit to the database and change will be reflected
     conn.commit()
@@ -99,7 +107,7 @@ def get_items():
     return items_list
 
 @app.get("/items/{item_id}")
-def get_item(item_id=int):
+def get_item(item_id: int):
 
     # Establish connection and create a cursor
     conn = sqlite3.connect('../db/mercari.sqlite3')
