@@ -1,0 +1,6 @@
+db/.tables
+db/sqlite3.exe
+go/go.sum
+python/__pycache__/
+python/go1.15.5.linux-amd64.tar.gz
+python/go1.18.2.linux-amd64.tar.gz
