@@ -88,7 +88,7 @@ def get_items():
     # Get all items
     cur.execute("SELECT * FROM items")
     stored_items = cur.fetchall()
-    items_list = {"items": stored_items}
+    items_list = {"items": [{"id": id, "name": name, "category": category, "image": image} for (id, name, category, image) in stored_items]}
 
     # Commit to the database and change will be reflected
     conn.commit()
